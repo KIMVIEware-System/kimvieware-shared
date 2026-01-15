@@ -1,0 +1,31 @@
+Metadata-Version: 2.4
+Name: kimvieware-shared
+Version: 0.1.0
+Summary: Shared libraries for KIMVIEware platform
+Home-page: https://github.com/KIMVIEware-System/kimvieware-shared
+Author: Flavie Ndemafo
+Author-email: davila.ndemafo@facsciences-uy1.cm
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Testing
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pika>=1.3.2
+Requires-Dist: pymongo>=4.6.1
+Requires-Dist: redis>=5.0.1
+Requires-Dist: pydantic>=2.5.0
+Requires-Dist: prometheus-client>=0.19.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# kimvieware-shared
+kimvieware-shared
