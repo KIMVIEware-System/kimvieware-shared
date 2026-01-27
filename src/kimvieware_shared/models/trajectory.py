@@ -28,10 +28,15 @@ class Trajectory:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary (JSON-serializable)"""
-        data = asdict(self)
-        # Convert set to list for JSON
-        data['branches_covered'] = list(self.branches_covered)
-        return data
+        return {
+            'path_id': self.path_id,
+            'basic_blocks': self.basic_blocks,
+            'path_condition': self.path_condition,
+            'branches_covered': [list(b) if isinstance(b, tuple) else b for b in self.branches_covered],
+            'constraints': self.constraints,
+            'cost': self.cost,
+            'is_feasible': self.is_feasible
+        }
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'Trajectory':
