@@ -6,6 +6,7 @@ __version__ = '0.1.0'
 from .models import JobStatus, Language, SUTInfo, Trajectory, JobMessage
 from .messaging import MicroserviceBase
 from .utils import create_connection, setup_logger
+from .storage import JobStorage
 
 __all__ = [
     '__version__',
@@ -16,5 +17,6 @@ __all__ = [
     'JobMessage',
     'MicroserviceBase',
     'create_connection',
-    'setup_logger'
+    'setup_logger',
+    'JobStorage'
 ]

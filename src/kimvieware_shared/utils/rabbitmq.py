@@ -7,15 +7,14 @@ import logging
 import time
 from typing import Dict, Any, Optional
 
-logger = logging.getLogger(__name__)
-
 def create_connection(
     host: str = 'localhost',
     port: int = 5672,
     username: str = 'admin',
     password: str = 'kimvie2025',
     max_retries: int = 5,
-    retry_delay: int = 5
+    retry_delay: int = 5,
+    logger: logging.Logger = logging.getLogger(__name__)
 ) -> pika.BlockingConnection:
     """Create RabbitMQ connection with retry logic"""
     
@@ -30,15 +29,16 @@ def create_connection(
                 blocked_connection_timeout=300
             )
             connection = pika.BlockingConnection(parameters)
-            logger.info(f" Connected to RabbitMQ at {host}:{port}")
+            logger.info(f"✅ Connected to RabbitMQ at {host}:{port}")
             return connection
         except Exception as e:
-            logger.error(f" Attempt {attempt}/{max_retries} failed: {str(e)}")
+            logger.error(f"Connection attempt {attempt}/{max_retries} to RabbitMQ failed: {e}")
             if attempt < max_retries:
-                logger.info(f" Retrying in {retry_delay}s...")
+                logger.info(f"Retrying in {retry_delay}s...")
                 time.sleep(retry_delay)
             else:
-                raise Exception(f"Failed to connect after {max_retries} attempts")
+                logger.critical(f"Failed to connect to RabbitMQ after {max_retries} attempts.")
+                raise Exception(f"Failed to connect to RabbitMQ after {max_retries} attempts")
 
 def declare_queue(channel, queue_name: str, durable: bool = True):
     """Declare a queue"""

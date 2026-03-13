@@ -3,27 +3,28 @@ Base class for all microservices
 """
 import pika
 import time
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any
 from datetime import datetime
 
 from ..utils.rabbitmq import create_connection, declare_queue, publish_message, parse_message
-from ..utils.logging import setup_logger, log_message_received, log_message_published
+from ..utils.logging import setup_logger, log_message_received, log_message_published, log_error, log_processing_time
 
 class MicroserviceBase(ABC):
     """Base microservice class"""
     
-    def __init__(self, service_name: str, input_queue: str, output_queue: str,
-                 rabbitmq_host: str = 'localhost', rabbitmq_port: int = 5672,
-                 rabbitmq_user: str = 'admin', rabbitmq_pass: str = 'kimvie2025'):
+    def __init__(self, service_name: str, input_queue: str, output_queue: str):
         
         self.service_name = service_name
         self.input_queue = input_queue
         self.output_queue = output_queue
-        self.rabbitmq_host = rabbitmq_host
-        self.rabbitmq_port = rabbitmq_port
-        self.rabbitmq_user = rabbitmq_user
-        self.rabbitmq_pass = rabbitmq_pass
+        
+        # Load RabbitMQ config from environment variables
+        self.rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')
+        self.rabbitmq_port = int(os.getenv('RABBITMQ_PORT', 5672))
+        self.rabbitmq_user = os.getenv('RABBITMQ_USER', 'admin')
+        self.rabbitmq_pass = os.getenv('RABBITMQ_PASS', 'kimvie2025')
         
         self.logger = setup_logger(service_name)
         self.connection = None
@@ -34,8 +35,11 @@ class MicroserviceBase(ABC):
     def _connect(self):
         """Connect to RabbitMQ"""
         self.connection = create_connection(
-            self.rabbitmq_host, self.rabbitmq_port,
-            self.rabbitmq_user, self.rabbitmq_pass
+            host=self.rabbitmq_host,
+            port=self.rabbitmq_port,
+            username=self.rabbitmq_user,
+            password=self.rabbitmq_pass,
+            logger=self.logger
         )
         self.channel = self.connection.channel()
         declare_queue(self.channel, self.input_queue)
@@ -54,6 +58,7 @@ class MicroserviceBase(ABC):
         try:
             message = parse_message(body)
             if message is None:
+                self.logger.warning("Received a malformed message (not valid JSON). Discarding.")
                 ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
                 return
             
@@ -75,10 +80,10 @@ class MicroserviceBase(ABC):
             log_message_published(self.logger, job_id, self.output_queue)
             
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            self.logger.info(f"✅ Job {job_id} completed in {duration:.2f}s")
+            log_processing_time(self.logger, job_id, duration)
             
         except Exception as e:
-            self.logger.error(f"❌ Job {job_id} failed: {str(e)}")
+            log_error(self.logger, job_id, e)
             error_msg = {
                 'job_id': job_id,
                 'status': 'failed',
@@ -88,8 +93,10 @@ class MicroserviceBase(ABC):
             }
             try:
                 publish_message(self.channel, self.output_queue, error_msg)
-            except:
-                pass
+                log_message_published(self.logger, job_id, f"{self.output_queue} (error)")
+            except Exception as pub_e:
+                self.logger.critical(f"CRITICAL: Failed to publish error message for job {job_id}. Reason: {pub_e}")
+            
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     
     def start(self):

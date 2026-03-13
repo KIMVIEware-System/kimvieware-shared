@@ -13,6 +13,8 @@ src/kimvieware_shared/models/enums.py
 src/kimvieware_shared/models/job_message.py
 src/kimvieware_shared/models/sut_info.py
 src/kimvieware_shared/models/trajectory.py
+src/kimvieware_shared/storage/__init__.py
+src/kimvieware_shared/storage/job_storage.py
 src/kimvieware_shared/utils/__init__.py
 src/kimvieware_shared/utils/logging.py
 src/kimvieware_shared/utils/rabbitmq.py

@@ -11,14 +11,16 @@ class SUTInfo:
     
     Attributes:
         language: Detected programming language
+        framework: Detected framework (django, spring_boot, etc.)
         size_bytes: Total size of source files
         files_count: Number of source files
         entry_point: Main file (e.g., main.py, main.c)
         checksum: SHA256 checksum of all files
     """
     language: str
-    size_bytes: int
-    files_count: int
+    framework: Optional[str] = None
+    size_bytes: int = 0
+    files_count: int = 0
     entry_point: Optional[str] = None
     checksum: str = ""
     
